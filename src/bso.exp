@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f 
+set timeout 30
+set email [lindex $argv 0]
+set passwd [lindex $argv 1]
+set hostname [lindex $argv 2]
+
+spawn ../bin/telnet $hostname 
+expect {
+  "Username:" {send "$email\r"}
+  "Password:" exit
+  "login:" exit
+  "Connection refused" exit
+}
+expect {
+  "Password:" {send "$passwd\r"}
+  "login:" exit
+}
+expect {
+  "BSO Authentication Successful" exit
+  "Password: " exit
+  "login:" exit
+}
+expect {
+  "BSO Authentication Error - Please Try Again" exit
+}
+
