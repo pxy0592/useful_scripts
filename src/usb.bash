@@ -8,11 +8,9 @@
 ###################################################################
 
 opt=${1}
+disk_name=${2:-"SanDisk128G"}
 
 mount_device() {
-  # Step 1. recognize what's the device id
-  device_id=$(diskutil list | grep SanDisk128G | awk '{print $NF}')
-
   # Step 2. make empty directory under /Volumes director
   mkdir -p /Volumes/${device_id}
 
@@ -33,7 +31,6 @@ mount_device() {
 }
 
 unmount_device() {
-  device_id=$(diskutil list | grep SanDisk128G | awk '{print $NF}')
   mount_point=$(diskutil info ${device_id} | grep 'Mount Point:' | awk '{print $NF}')
   if [ ! -z $mount_point ]; then
     diskutil unmount ${mount_point}
@@ -46,6 +43,22 @@ unmount_device() {
   fi 
 }
 
+eject_device() {
+  count=$(diskutil list | grep ${device_id} | wc -l)
+  if [ $count -eq 1 ]; then
+    hdiutil eject ${device_id}
+  else
+    echo "There is no device ${device_id} to be ejected in the system."
+  fi
+}
+
+# Step 1. obtain the device id
+device_id=$(diskutil list | grep ${disk_name} | awk '{print $NF}')
+if [ -z ${device_id} ]; then
+  echo "There is no device ${device_id} to be here in the system."
+  exit -1
+fi
+
 case $opt in
 mount)
   mount_device
@@ -54,9 +67,11 @@ mount)
 unmount)
   unmount_device
   ;;
+eject)
+  eject_device
+  ;;
 *)
-  echo "Use usb mount|unmount"
+  echo "Use usb mount|unmount|eject"
   ;;
 esac
-
 
