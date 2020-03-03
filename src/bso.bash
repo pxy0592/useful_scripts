@@ -4,7 +4,7 @@
 #  _ip_a=$(LC_ALL=C ifconfig $i | grep -Eo '[[:digit:]]{1,3}\.' | tr -d . | head -n 1)
 #  [ ! -z $_ip_a ] && break 
 #done
-_ip_a=$(ifconfig | grep "inet " | grep broadcast | awk '{print $2}' | awk -F. '{print $1}')
+_ip_a=$(ifconfig | grep "inet " | grep broadcast | awk '{print $2}' | awk -F. '{print $1}' | sort -u)
 _internal=False
 if [ $_ip_a -ne 9 ]; then
   echo "The ip address $_ip_a is not from office, remove the file .bso.lock directly."
@@ -37,9 +37,12 @@ bso() {
 
 _cnt=0
 _bso_site='bso.exp'
-_email=""
-_password=""
-_vm_site=('hostA' 'hostB' '192.168.1.1')
+_email="panxiny@cn.ibm.com"
+_dirname=$(dirname $0)
+_pdfile="${_dirname}/passwd"
+[[ ! -f $_pdfile ]] && $(echo "The $_pdfile doesn't exist, please make sure the file existing."; exit -1)
+_password=$(base64 --decode --input ${_pdfile})
+_vm_site=('jpmc001.eng.platformlab.ibm.com' 'haswell01.eng.platformlab.ibm.com' '9.115.242.15')
 while [ $_cnt -lt ${#_vm_site[@]} ]; do
   bso ${_bso_site} ${_email} ${_password} ${_vm_site[$_cnt]}
   let _cnt=$(( _cnt + 1 ))
@@ -50,6 +53,6 @@ then
   touch ~/.bso.lock
   chmod 100 ~/.bso.lock
 else
-  exit -1
+  echo "Hwhere am I!"
 fi
 
